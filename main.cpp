@@ -3,19 +3,23 @@
 #include <string>
 using namespace std;
 
+//структура задачи
 struct Task{
     int id;
     string name;
     string priority;
 };
 
+// класс итератора 
 class Iterator{
-    vector<Task>::iterator it;
+    vector<Task>::iterator it; //объявление переменной it, которая является итератором для std::vector<Task>
     public:
-        Iterator(vector<Task>::iterator begin): it(begin) {}
-        Task& operator* () { return *it; }
-        Task& operator++(int){ return *it++;}
-        bool operator!= (const Iterator& other){ return it != other.it;}
+        Iterator(vector<Task>::iterator begin): it(begin) {} //инициализация
+        Task& operator* () { return *it; } // перегрузка разыменовывания
+        Task& operator++(int){ return *it++;} // перегрузка инкремента
+        bool operator!= (const Iterator& other){ return it != other.it;} // перегрузка !=
+        //функция фильтрации, принимает на вход вспомогательный итератор, который указывает до какого момента итерироваться
+        // и key - сам фильтр
         template <typename T>
         std::vector<Task> filter(Iterator end, T key){
             std::vector<Task> filtered;
