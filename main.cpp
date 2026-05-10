@@ -1,37 +1,47 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include <functional>
 using namespace std;
 
-//структура задачи
+
 struct Task{
     int id;
     string name;
     string priority;
 };
 
-// класс итератора 
-class Iterator{
-    vector<Task>::iterator it; //объявление переменной it, которая является итератором для std::vector<Task>
-    public:
-        Iterator(vector<Task>::iterator begin): it(begin) {} //инициализация
-        Task& operator* () { return *it; } // перегрузка разыменовывания
-        Task& operator++(int){ return *it++;} // перегрузка инкремента
-        bool operator!= (const Iterator& other){ return it != other.it;} // перегрузка !=
-        //функция фильтрации, принимает на вход вспомогательный итератор, который указывает до какого момента итерироваться
-        // и key - сам фильтр
-        template <typename T>
-        std::vector<Task> filter(Iterator end, T key){
-            std::vector<Task> filtered;
-            while (it != end.it){
-                if (key(*it))
-                    filtered.push_back(*it);
-                it++;
-            }
-            return filtered;
-        }
-        
 
+
+class Iterator{
+    vector<Task>::iterator it;
+    vector<Task>::iterator end;
+    
+    function<bool(Task&)> key;
+
+    void move_next(){
+        while (it != end && !key(*it)){
+            it++;
+        }
+    }
+    public:
+        Iterator(vector<Task>::iterator begin, vector<Task>::iterator end, function<bool(Task&)> key) : it(begin), end(end), key(key){
+            move_next();
+        }
+    
+        Task& operator* () {
+            return *it;
+        }
+        Iterator& operator++(int){
+            it++;
+            move_next();
+            return *this;
+        }
+        bool operator!= (Iterator& other) {
+            return it != other.it;
+        } 
+
+        
 };
 
 int main(){
@@ -54,12 +64,25 @@ int main(){
     tasks.push_back(t2);
     tasks.push_back(t3);
 
-    Iterator it(tasks.begin());
-    Iterator end(tasks.end());
 
-    std::vector<Task> result = it.filter(end, [](Task t){return t.priority == "high";});
-    for (auto i: result){
-        std::cout << i.id << " " << i.name << " " << i.priority << endl;
+    auto key = [](Task& t) {return t.priority == "high";};
+    
+    Iterator start(tasks.begin(), tasks.end(), key);
+    Iterator finish(tasks.end(), tasks.end(), key);
+    
+    while (start != finish){
+        cout << (*start).id << " " << (*start).name << " " << (*start).priority << endl;
+        start++;
+    }
+
+    auto key2 = [](Task& t) {return t.id%2 == 0;};
+    
+    Iterator start1(tasks.begin(), tasks.end(), key2);
+    Iterator finish1(tasks.end(), tasks.end(), key2);
+    std::cout << std::endl;
+    while (start1 != finish1){
+        cout << (*start1).id << " " << (*start1).name << " " << (*start1).priority << endl;
+        start1++;
     }
     return 0;
 }
